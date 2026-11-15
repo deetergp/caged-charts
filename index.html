@@ -110,6 +110,8 @@ footer{color:var(--muted);font-size:13px;max-width:70ch}
     <div class="controls">
       <div class="ctl"><label for="key">Key (tonic)</label>
         <select id="key"></select></div>
+      <div class="ctl"><label for="scale">Scale</label>
+        <select id="scale"></select></div>
       <div class="ctl"><span class="lbl" id="lblmode">Dot labels</span>
         <div class="seg" role="group" aria-labelledby="lblmode">
           <button type="button" id="lbl-note" data-l="note" aria-pressed="true">Notes</button>
@@ -237,7 +239,8 @@ function neckSVG(sc,tonic,pos){
 function render(){
   const tonic=+document.getElementById('key').value;
   let html='';
-  for(const sc of SCALES){
+  const scaleId=document.getElementById('scale').value;
+  for(const sc of SCALES.filter(s=>s.id===scaleId)){
     const pos=positions(sc,tonic);
     pos.forEach(p=>{const fs=notesIn(sc,tonic,p.s,p.s+4).map(n=>n.f);p.lo=Math.min(...fs);p.hi=Math.max(...fs);});
     const keyName=spell(tonic,sc,tonic);
@@ -249,6 +252,10 @@ function render(){
   }
   document.getElementById('out').innerHTML=html;
 }
+const scSel=document.getElementById('scale');
+SCALES.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;scSel.appendChild(o);});
+try{const v=localStorage.getItem('caged-scale');if(v&&SCALES.some(s=>s.id===v))scSel.value=v;}catch(e){}
+scSel.addEventListener('change',()=>{try{localStorage.setItem('caged-scale',scSel.value)}catch(e){}render();});
 const sel=document.getElementById('key');
 KEYS.forEach(([v,n])=>{const o=document.createElement('option');o.value=v;o.textContent=n;sel.appendChild(o);});
 let saved=9; try{const v=localStorage.getItem('caged-key');if(v!==null)saved=+v;}catch(e){}
