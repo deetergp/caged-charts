@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CAGED Scale Positions</title>
+<meta name="description" content="CAGED positions for major, natural minor and minor pentatonic scales in any key.">
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15181c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CAGED">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; each scale is a band with a full-neck map, then five position cards that wrap */
+:root{
+  --paper:#f3f4f1; --card:#ffffff; --ink:#1c2026; --muted:#5d6570; --line:#c9cdc6; --fret:#9aa09a;
+  --root:#2b55c6; --chord:#b97a0c; --tone:#2f343b; --tone-ink:#ffffff; --band:#e6e8e3;
+  --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#15181c; --card:#1d2126; --ink:#e7e9e6; --muted:#9aa2ab; --line:#3a4048; --fret:#59616b;
+  --root:#6f95ff; --chord:#e2a63a; --tone:#d7dad5; --tone-ink:#15181c; --band:#262b31; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#15181c; --card:#1d2126; --ink:#e7e9e6; --muted:#9aa2ab; --line:#3a4048; --fret:#59616b;
+  --root:#6f95ff; --chord:#e2a63a; --tone:#d7dad5; --tone-ink:#15181c; --band:#262b31; color-scheme:dark}
+@media print{:root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+  --paper:#fff; --card:#fff; --ink:#000; --muted:#444; --line:#bbb; --fret:#888;
+  --root:#1f46b0; --chord:#a86a00; --tone:#222; --tone-ink:#fff; --band:#eee; color-scheme:light}}
+
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+header{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:end;justify-content:space-between}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label,.ctl .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+select{font:500 15px var(--body);padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:500 14px var(--body);padding:7px 12px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--root);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+section{display:flex;flex-direction:column;gap:16px}
+.shead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;border-top:2px solid var(--ink);padding-top:12px}
+h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0}
+.formula{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.note{color:var(--muted);margin:0;max-width:70ch;font-size:14px}
+.neck{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 8px}
+.neck svg{display:block;min-width:720px;width:100%;height:auto}
+.grid{display:flex;flex-wrap:wrap;gap:14px}
+.pos{flex:1 1 300px;max-width:350px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 12px 8px;break-inside:avoid}
+.pos h3{margin:0 0 6px;font-size:14px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.pos h3 .fr{font-family:var(--mono);font-weight:500;color:var(--muted);font-size:12px}
+.pos svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--mono)}
+footer{color:var(--muted);font-size:13px;max-width:70ch}
+@page{size:letter portrait;margin:0.45in}
+@media print{
+  html,body{background:#fff}
+  body{padding:0;font-size:12px}
+  .wrap{max-width:none;gap:14px}
+  .controls,.wrap>footer{display:none}
+  .sub{font-size:12px;margin-top:4px}
+  h1{font-size:26px}
+  #out{gap:0!important}
+  section{gap:8px;break-inside:avoid;page-break-inside:avoid}
+  section+section{break-before:page;page-break-before:always}
+  .shead{padding-top:8px}
+  h2{font-size:20px}
+  .note{font-size:11.5px}
+  .neck{overflow:visible;padding:6px;break-inside:avoid;page-break-inside:avoid}
+  .neck svg{min-width:0}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .pos{max-width:none;padding:8px 8px 4px;break-inside:avoid;page-break-inside:avoid}
+  .pos h3{font-size:11.5px}
+  .legend{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>CAGED Scale Positions</h1>
+      <p class="sub">Five positions each for major, natural minor and minor pentatonic, built on the CAGED chord shapes. Pick a key and the whole sheet moves with it.</p>
+    </div>
+    <div class="controls">
+      <div class="ctl"><label for="key">Key (tonic)</label>
+        <select id="key"></select></div>
+      <div class="ctl"><span class="lbl" id="lblmode">Dot labels</span>
+        <div class="seg" role="group" aria-labelledby="lblmode">
+          <button type="button" id="lbl-note" data-l="note" aria-pressed="true">Notes</button>
+          <button type="button" id="lbl-int" data-l="int" aria-pressed="false">Intervals</button>
+        </div></div>
+    </div>
+  </header>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--root)"></i>Root</span>
+    <span><i class="sw" style="background:var(--card);border:2.5px solid var(--chord)"></i>Chord tone (3rd, 5th)</span>
+    <span><i class="sw" style="background:var(--tone)"></i>Other scale tone</span>
+    <span>High e on top, as in tab. Numbers under each chart are fret numbers.</span>
+  </div>
+  <div id="out" style="display:flex;flex-direction:column;gap:48px"></div>
+  <footer>Tip: a minor key and its relative major share the same five shapes. A minor uses exactly the C major patterns, just with a different note treated as home. The minor shapes are named after the minor chord they surround (Em, Dm, Cm, Am, Gm), and Box 1 is the familiar pentatonic box with the root under your first finger on the low E string.</footer>
+</div>
+
+<script>
+const SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FLAT =['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+const KEYS=[[0,'C'],[1,'C♯ / D♭'],[2,'D'],[3,'D♯ / E♭'],[4,'E'],[5,'F'],[6,'F♯ / G♭'],[7,'G'],[8,'G♯ / A♭'],[9,'A'],[10,'A♯ / B♭'],[11,'B']];
+const OPEN=[4,9,2,7,11,4]; // low E to high e
+const SNAME=['E','A','D','G','B','e'];
+const FLATMAJ=new Set([5,10,3,8,1]); // F Bb Eb Ab Db major keys use flats
+const SCALES=[
+  {id:'maj',name:'Major',formula:'1  2  3  4  5  6  7',minor:false,
+   iv:{0:'1',2:'2',4:'3',5:'4',7:'5',9:'6',11:'7'},
+   blurb:'The classic C-A-G-E-D positions. Each pattern is wrapped around the open-chord shape it is named for, so the highlighted chord tones trace that chord.'},
+  {id:'nat',name:'Natural Minor',formula:'1  2  ♭3  4  5  ♭6  ♭7',minor:true,
+   iv:{0:'1',2:'2',3:'♭3',5:'4',7:'5',8:'♭6',10:'♭7'},
+   blurb:'Aeolian mode. Each position is the matching pentatonic box plus the 2 and ♭6, so learn them in pairs: same position, same frets, two extra notes per octave.'},
+  {id:'pent',name:'Minor Pentatonic',formula:'1  ♭3  4  5  ♭7',minor:true,
+   iv:{0:'1',3:'♭3',5:'4',7:'5',10:'♭7'},
+   blurb:'The five boxes most rock and blues lead playing lives in. Two notes per string, so each box is easy to memorize, and they lock together end to end up the neck. Each one is its natural minor position with the 2 and ♭6 removed.'}
+];
+// Major CAGED windows: 5-fret span starting at offset from E-shape start (root on low E minus 1)
+const MAJ_OFF=[['E',0],['D',2],['C',5],['A',7],['G',9]];
+const MIN_MAP={G:['Em',1],E:['Dm',2],D:['Cm',3],C:['Am',4],A:['Gm',5]};
+const mod=(n)=>((n%12)+12)%12;
+
+function majorWindows(root){
+  const sE=mod(root-4)-1;
+  return MAJ_OFF.map(([shape,o])=>({shape,s:mod(sE+o)}));
+}
+function positions(sc,tonic){
+  if(!sc.minor){
+    return majorWindows(tonic).map(w=>({label:w.shape+' shape',s:w.s})).sort((a,b)=>a.s-b.s);
+  }
+  return majorWindows(mod(tonic+3)).map(w=>{const [n,b]=MIN_MAP[w.shape];return{label:'Box '+b+' · '+n+' shape',b,s:w.s};})
+    .sort((a,b)=>a.b-b.b);
+}
+function notesIn(sc,tonic,s,e){
+  const out=[];
+  for(let i=0;i<6;i++){
+    for(let f=s;f<=e;f++){
+      const iv=mod(OPEN[i]+f-tonic);
+      if(!(iv in sc.iv))continue;
+      if(e-s===4 && i===3 && f===e)continue; // G/B overlap: play it on the B string
+      out.push({str:i,f,iv});
+    }
+  }
+  return out;
+}
+let labelMode='note';
+function spell(pc,sc,tonic){
+  const majKey=sc.minor?mod(tonic+3):tonic;
+  return (FLATMAJ.has(majKey)?FLAT:SHARP)[pc];
+}
+function dot(x,y,r,n,sc,tonic){
+  const chord=sc.minor?[3,7]:[4,7];
+  const pc=mod(tonic+n.iv);
+  const txt=labelMode==='int'?sc.iv[n.iv]:spell(pc,sc,tonic);
+  let fill='var(--tone)',stroke='none',sw=0,tc='var(--tone-ink)';
+  if(n.iv===0){fill='var(--root)';tc='#fff';}
+  else if(chord.includes(n.iv)){fill='var(--card)';stroke='var(--chord)';sw=2.5;tc='var(--ink)';}
+  const fs=txt.length>2?9:11;
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`+
+    `<text x="${x}" y="${y+fs*0.36}" font-size="${fs}" text-anchor="middle" fill="${tc}" font-weight="500">${txt}</text>`;
+}
+function posSVG(sc,tonic,s){
+  const e=s+4, open=s===0;
+  const L=22, cw=50, sp=24, T=12, first=open?1:s;
+  const cols=e-first+1, ox=L+(open?26:0);
+  const W=ox+cols*cw+8, H=T+5*sp+30;
+  let g='';
+  for(let i=0;i<6;i++){const y=T+(5-i)*sp;
+    g+=`<text x="4" y="${y+4}" font-size="11" fill="var(--muted)">${SNAME[i]}</text>`;
+    g+=`<line x1="${open?L+4:ox}" y1="${y}" x2="${ox+cols*cw}" y2="${y}" stroke="var(--fret)" stroke-width="${1+(i<3?(3-i)*0.35:0)}"/>`;}
+  for(let c=0;c<=cols;c++){const x=ox+c*cw;
+    const nut=open&&c===0;
+    g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+5*sp}" stroke="${nut?'var(--ink)':'var(--line)'}" stroke-width="${nut?4:1.5}"/>`;}
+  for(let c=0;c<cols;c++){const f=first+c;
+    g+=`<text x="${ox+c*cw+cw/2}" y="${T+5*sp+20}" font-size="11" text-anchor="middle" fill="var(--muted)">${f}</text>`;}
+  if(open)g+=`<text x="${L+13}" y="${T+5*sp+20}" font-size="11" text-anchor="middle" fill="var(--muted)">0</text>`;
+  for(const n of notesIn(sc,tonic,s,e)){
+    const y=T+(5-n.str)*sp;
+    const x=n.f===0?L+13:ox+(n.f-first)*cw+cw/2;
+    g+=dot(x,y,10.5,n,sc,tonic);}
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="fretboard chart">${g}</svg>`;
+}
+function neckSVG(sc,tonic,pos){
+  const L=22,cw=44,sp=20,T=10,N=15,ox=L+24;
+  const W=ox+N*cw+8, bandsTop=T+5*sp+30, H=bandsTop+pos.length*15+6;
+  let g='';
+  [3,5,7,9,15].forEach(f=>{g+=`<circle cx="${ox+(f-1)*cw+cw/2}" cy="${T+2.5*sp}" r="4" fill="var(--band)"/>`;});
+  g+=`<circle cx="${ox+11*cw+cw/2}" cy="${T+1.5*sp}" r="4" fill="var(--band)"/><circle cx="${ox+11*cw+cw/2}" cy="${T+3.5*sp}" r="4" fill="var(--band)"/>`;
+  for(let i=0;i<6;i++){const y=T+(5-i)*sp;
+    g+=`<text x="4" y="${y+4}" font-size="11" fill="var(--muted)">${SNAME[i]}</text>`;
+    g+=`<line x1="${L+4}" y1="${y}" x2="${ox+N*cw}" y2="${y}" stroke="var(--fret)" stroke-width="1.2"/>`;}
+  for(let c=0;c<=N;c++){const x=ox+c*cw;
+    g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${T+5*sp}" stroke="${c===0?'var(--ink)':'var(--line)'}" stroke-width="${c===0?4:1.2}"/>`;
+    if(c<N)g+=`<text x="${x+cw/2}" y="${T+5*sp+18}" font-size="10.5" text-anchor="middle" fill="var(--muted)">${c+1}</text>`;}
+  g+=`<text x="${L+12}" y="${T+5*sp+18}" font-size="10.5" text-anchor="middle" fill="var(--muted)">0</text>`;
+  for(let i=0;i<6;i++)for(let f=0;f<=N;f++){
+    const iv=mod(OPEN[i]+f-tonic); if(!(iv in sc.iv))continue;
+    const x=f===0?L+12:ox+(f-1)*cw+cw/2, y=T+(5-i)*sp;
+    g+=dot(x,y,9,{iv},sc,tonic);}
+  pos.forEach((p,k)=>{
+    const y=bandsTop+k*15;
+    const x1=p.lo===0?L+2:ox+(p.lo-1)*cw, x2=Math.min(ox+p.hi*cw,ox+N*cw);
+    g+=`<rect x="${x1}" y="${y}" width="${x2-x1}" height="10" rx="3" fill="var(--band)"/>`;
+    g+=`<text x="${x1+6}" y="${y+8.5}" font-size="9.5" fill="var(--ink)" font-family="var(--body)">${p.label}</text>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="full neck map">${g}</svg>`;
+}
+function render(){
+  const tonic=+document.getElementById('key').value;
+  let html='';
+  for(const sc of SCALES){
+    const pos=positions(sc,tonic);
+    pos.forEach(p=>{const fs=notesIn(sc,tonic,p.s,p.s+4).map(n=>n.f);p.lo=Math.min(...fs);p.hi=Math.max(...fs);});
+    const keyName=spell(tonic,sc,tonic);
+    const rel=sc.minor?` <span class="formula">· relative major: ${spell(mod(tonic+3),sc,tonic)}</span>`:'';
+    html+=`<section id="${sc.id}"><div class="shead"><h2>${keyName} ${sc.name}</h2><span class="formula">${sc.formula}</span>${rel}</div>
+      <p class="note">${sc.blurb}</p>
+      <div class="neck">${neckSVG(sc,tonic,pos)}</div>
+      <div class="grid">${pos.map(p=>`<div class="pos"><h3><span>${p.label}</span><span class="fr">${p.lo===0?'open–'+p.hi:'frets '+p.lo+'–'+p.hi}</span></h3>${posSVG(sc,tonic,p.s)}</div>`).join('')}</div></section>`;
+  }
+  document.getElementById('out').innerHTML=html;
+}
+const sel=document.getElementById('key');
+KEYS.forEach(([v,n])=>{const o=document.createElement('option');o.value=v;o.textContent=n;sel.appendChild(o);});
+let saved=9; try{const v=localStorage.getItem('caged-key');if(v!==null)saved=+v;}catch(e){}
+sel.value=saved;
+sel.addEventListener('change',()=>{try{localStorage.setItem('caged-key',sel.value)}catch(e){}render();});
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{
+  labelMode=b.dataset.l;
+  document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  render();}));
+render();
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
+</script>
+
+</body>
+</html>
