@@ -105,7 +105,7 @@ footer{color:var(--muted);font-size:13px;max-width:70ch}
   <header>
     <div>
       <h1>CAGED Scale Positions</h1>
-      <p class="sub">Five positions each for major, natural minor and minor pentatonic, built on the CAGED chord shapes. Pick a key and the whole sheet moves with it.</p>
+      <p class="sub">Five positions each for the major and minor scales, built on the CAGED chord shapes. Pick a key and the whole sheet moves with it.</p>
     </div>
     <div class="controls">
       <div class="ctl"><label for="key">Key (tonic)</label>
@@ -146,6 +146,12 @@ const SCALES=[
   {id:'nat',name:'Natural Minor',formula:'1  2  ♭3  4  5  ♭6  ♭7',minor:true,
    iv:{0:'1',2:'2',3:'♭3',5:'4',7:'5',8:'♭6',10:'♭7'},
    blurb:'Aeolian mode. Each position is the matching pentatonic box plus the 2 and ♭6, so learn them in pairs: same position, same frets, two extra notes per octave.'},
+  {id:'harm',name:'Harmonic Minor',formula:'1  2  ♭3  4  5  ♭6  7',minor:true,
+   iv:{0:'1',2:'2',3:'♭3',5:'4',7:'5',8:'♭6',11:'7'},
+   blurb:'Natural minor with the 7th raised a half step. That raised 7th makes the V chord major (E7 in A minor), and the gap from ♭6 up to 7 gives the scale its classical and Middle Eastern sound. Compare each box to the natural minor one: only the 7th moves.'},
+  {id:'mel',name:'Melodic Minor',formula:'1  2  ♭3  4  5  6  7',minor:true,
+   iv:{0:'1',2:'2',3:'♭3',5:'4',7:'5',9:'6',11:'7'},
+   blurb:'Natural minor with both the 6th and 7th raised. This is the jazz version, played the same going up and coming down. In classical theory it descends as natural minor. It sounds like a major scale with a flat 3rd.'},
   {id:'pent',name:'Minor Pentatonic',formula:'1  ♭3  4  5  ♭7',minor:true,
    iv:{0:'1',3:'♭3',5:'4',7:'5',10:'♭7'},
    blurb:'The five boxes most rock and blues lead playing lives in. Two notes per string, so each box is easy to memorize, and they lock together end to end up the neck. Each one is its natural minor position with the 2 and ♭6 removed.'}
@@ -183,10 +189,17 @@ function spell(pc,sc,tonic){
   const majKey=sc.minor?mod(tonic+3):tonic;
   return (FLATMAJ.has(majKey)?FLAT:SHARP)[pc];
 }
+// Spell each note by scale degree from the tonic's letter, so a raised 7th in D minor is C♯, not D♭
+const LET='CDEFGAB', LPC=[0,2,4,5,7,9,11], ACC={0:'',1:'♯',2:'𝄪',11:'♭',10:'𝄫'};
+function spellDeg(pc,label,tonicName){
+  const deg=parseInt(label.replace(/[♭♯]/g,''),10);
+  const li=(LET.indexOf(tonicName[0])+deg-1)%7;
+  return LET[li]+ACC[mod(pc-LPC[li])];
+}
 function dot(x,y,r,n,sc,tonic){
   const chord=sc.minor?[3,7]:[4,7];
   const pc=mod(tonic+n.iv);
-  const txt=labelMode==='int'?sc.iv[n.iv]:spell(pc,sc,tonic);
+  const txt=labelMode==='int'?sc.iv[n.iv]:spellDeg(pc,sc.iv[n.iv],spell(tonic,sc,tonic));
   let fill='var(--tone)',stroke='none',sw=0,tc='var(--tone-ink)';
   if(n.iv===0){fill='var(--root)';tc='#fff';}
   else if(chord.includes(n.iv)){fill='var(--card)';stroke='var(--chord)';sw=2.5;tc='var(--ink)';}
