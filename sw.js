@@ -1,8 +1,9 @@
 // Bump VERSION whenever you change any file so installed copies pick up the update.
-const VERSION = 'caged-v5';
+const VERSION = 'woodshed-v1';
 const CORE = ['./', './index.html', './manifest.webmanifest',
+  './caged/', './caged/index.html', './notes/', './notes/index.html',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
-const FONTS = 'caged-fonts';
+const FONTS = 'woodshed-fonts';
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

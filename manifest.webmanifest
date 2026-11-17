@@ -1,7 +1,7 @@
 {
-  "name": "CAGED Scale Positions",
-  "short_name": "CAGED",
-  "description": "CAGED positions for major, natural minor and minor pentatonic scales in any key.",
+  "name": "Woodshed",
+  "short_name": "Woodshed",
+  "description": "Guitar practice tools: CAGED scale positions and a fretboard note trainer.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
