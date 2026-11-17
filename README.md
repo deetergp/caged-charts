@@ -6,7 +6,7 @@ Installable web app with guitar practice tools for learning the neck. Works offl
 
 ## Tools
 - **CAGED Scale Positions** (`caged/`) – the five CAGED positions for major, major pentatonic, natural, harmonic and melodic minor, and minor pentatonic scales in any key, with a notes/intervals toggle.
-- **Fretboard Note Trainer** (`notes/`) – a blank neck from the open strings to fret 12. Type each note name; wrong answers turn red. Clear the chart to start over.
+- **Fretboard Note Trainer** (`notes/`) – a blank neck from the open strings to fret 12. *Name the notes*: type each note name; wrong answers turn red, and Clear starts over. *Find the note*: the app picks a random note and you click every place it lives (or just on one string).
 
 ## Install
 - **iPhone / iPad (Safari):** Share → Add to Home Screen
@@ -27,4 +27,4 @@ Open it once while online; after that it works offline.
 Make a new folder with an `index.html` (copy the `← Woodshed` link, manifest/icon tags and service-worker registration from an existing tool), add a card for it on the home page, and add its paths to `CORE` in `sw.js`.
 
 ## Updating
-After changing any file, bump `VERSION` in `sw.js` (e.g. `woodshed-v1` → `woodshed-v2`) so installed copies pick up the new version on their next launch or two.
+After changing any file, bump `VERSION` in `sw.js` (e.g. `woodshed-v2` → `woodshed-v3`) so installed copies pick up the new version on their next launch or two.
