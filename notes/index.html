@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fretboard Note Trainer</title>
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15181c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Woodshed">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+:root{
+  --paper:#f3f4f1; --card:#ffffff; --ink:#1c2026; --muted:#5d6570; --line:#c9cdc6; --fret:#9aa09a;
+  --root:#2b55c6; --band:#e6e8e3; --wrong:#c8312b; --ok:#2e7d4f;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#15181c; --card:#1d2126; --ink:#e7e9e6; --muted:#9aa2ab; --line:#3a4048; --fret:#59616b;
+  --root:#6f95ff; --band:#262b31; --wrong:#ff6b62; --ok:#6fcf97; color-scheme:dark}}
+
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-top:calc(28px + env(safe-area-inset-top, 0px));padding-bottom:calc(48px + env(safe-area-inset-bottom, 0px))}
+.home{display:inline-block;margin-bottom:10px;font:500 13px var(--mono);color:var(--muted);text-decoration:none}
+.home:hover{color:var(--root)}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:end;justify-content:space-between}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.controls{display:flex;flex-wrap:wrap;gap:16px;align-items:end}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:500 14px var(--body);padding:7px 12px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.primary{font:600 14px var(--body);padding:7px 14px;border:1px solid var(--root);border-radius:6px;background:var(--root);color:#fff;cursor:pointer}
+.primary:hover{filter:brightness(1.08)}
+.primary:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--root);outline-offset:2px}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between;
+  border-top:2px solid var(--ink);padding-top:12px}
+h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0}
+.score{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.score b{color:var(--ink);font-weight:600}
+.score.done b{color:var(--ok)}
+
+.neck{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 10px 8px}
+.board{display:grid;grid-template-columns:26px 58px repeat(12,minmax(54px,1fr));min-width:820px}
+.sname{display:flex;align-items:center;font-family:var(--mono);font-size:11px;color:var(--muted);padding-left:4px}
+.cell{position:relative;height:46px;display:flex;align-items:center;justify-content:center;border-right:1.5px solid var(--line)}
+.cell.open{border-right:4px solid var(--ink)}
+.cell::before{content:"";position:absolute;left:0;right:0;top:50%;height:var(--sw,1px);background:var(--fret);transform:translateY(-50%)}
+.cell.open::before{left:50%}
+.cell.inlay::after{content:"";position:absolute;left:50%;top:100%;width:9px;height:9px;border-radius:50%;
+  background:var(--band);transform:translate(-50%,-50%);z-index:0}
+input{position:relative;z-index:1;width:42px;height:30px;border-radius:15px;border:1.5px solid var(--line);
+  background:var(--card);text-align:center;font:600 14px var(--mono);color:var(--ink);outline:none;padding:0}
+input:focus{border-color:var(--root);box-shadow:0 0 0 3px color-mix(in srgb,var(--root) 22%,transparent)}
+input.filled{border-color:var(--fret)}
+input.wrong{color:var(--wrong);border-color:var(--wrong)}
+.fnum{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:6px}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.legend code{font-family:var(--mono);font-size:12px;background:var(--band);color:var(--ink);padding:1px 6px;border-radius:4px}
+.legend .bad{color:var(--wrong);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <a class="home" href="../">← Woodshed</a>
+      <h1>Fretboard Note Trainer</h1>
+      <p class="sub">Name every note from the open strings to the 12th fret. Right answers stay put, wrong ones turn red. Clear it and go again.</p>
+    </div>
+    <div class="controls">
+      <div class="ctl"><span class="lbl" id="lblorient">Top string</span>
+        <div class="seg" role="group" aria-labelledby="lblorient">
+          <button type="button" data-o="tab" aria-pressed="true">High e (tab)</button>
+          <button type="button" data-o="neck" aria-pressed="false">Low E</button>
+        </div></div>
+      <button type="button" class="primary" id="clear">Clear chart</button>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div class="bar"><h2>Standard tuning</h2><span class="score" id="score"><b>0</b> / 78 correct</span></div>
+    <div class="neck"><div class="board" id="board"></div></div>
+    <div class="legend">
+      <span>Type <code>A</code> <code>F#</code> <code>Bb</code> <code>C♯</code> <code>E♭</code>. Sharp or flat spelling both count; lowercase is fine.</span>
+      <span>A wrong note shows in <span class="bad">red</span>.</span>
+      <span>Enter or Tab moves along the string; arrow keys move between boxes.</span>
+    </div>
+  </section>
+</div>
+
+<script>
+// Strings indexed 0 = high e ... 5 = low E (string numbers 1-6)
+const OPEN=[4,11,7,2,9,4];
+const SW=[1,1.2,1.5,1.9,2.3,2.7];
+const FRETS=12;
+let orient='tab';
+try{const v=localStorage.getItem('fnt-orient');if(v==='tab'||v==='neck')orient=v;}catch(e){}
+
+const board=document.getElementById('board');
+const scoreEl=document.getElementById('score');
+const values={};
+
+function parse(txt){
+  const t=txt.trim().replace(/♯/g,'#').replace(/♭/g,'b');
+  if(!t)return{state:'empty'};
+  const m=t.match(/^([A-Ga-g])([#b]*)$/);
+  if(!m)return{state:'bad'};
+  let pc={C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1].toUpperCase()];
+  for(const ch of m[2])pc+=ch==='#'?1:-1;
+  return{state:'note',pc:((pc%12)+12)%12,bare:m[2]===''};
+}
+function check(inp,final){
+  const ans=+inp.dataset.pc, r=parse(inp.value);
+  let wrong=false;
+  if(r.state==='bad')wrong=true;
+  else if(r.state==='note'&&r.pc!==ans){
+    // a bare letter that a ♯ or ♭ could still fix isn't marked wrong until you leave the box
+    const couldBe=r.bare&&!final&&((r.pc+1)%12===ans||(r.pc+11)%12===ans);
+    wrong=!couldBe;
+  }
+  inp.classList.toggle('wrong',wrong);
+  inp.classList.toggle('filled',r.state!=='empty');
+  inp.dataset.ok=(r.state==='note'&&r.pc===ans)?'1':'';
+}
+function updateScore(){
+  const n=board.querySelectorAll('input[data-ok="1"]').length;
+  scoreEl.innerHTML=n===78?'<b>78 / 78</b> all correct':`<b>${n}</b> / 78 correct`;
+  scoreEl.classList.toggle('done',n===78);
+}
+function el(cls,text){const d=document.createElement('div');d.className=cls;if(text!==undefined)d.textContent=text;return d;}
+
+function build(){
+  board.innerHTML='';
+  const order=orient==='tab'?[0,1,2,3,4,5]:[5,4,3,2,1,0];
+  order.forEach((s,row)=>{
+    board.append(el('sname',s+1));
+    for(let f=0;f<=FRETS;f++){
+      let cls='cell'+(f===0?' open':'');
+      // inlays sit on the line between rows: centre for 3/5/7/9, two for 12
+      if(([3,5,7,9].includes(f)&&row===2)||(f===12&&(row===1||row===3)))cls+=' inlay';
+      const c=el(cls);
+      c.style.setProperty('--sw',SW[s]+'px');
+      const inp=document.createElement('input');
+      inp.type='text';inp.maxLength=3;inp.autocomplete='off';inp.spellcheck=false;
+      inp.setAttribute('autocapitalize','characters');
+      inp.setAttribute('aria-label',`String ${s+1}, ${f===0?'open':'fret '+f}`);
+      inp.dataset.pc=(OPEN[s]+f)%12; inp.dataset.row=row; inp.dataset.col=f;
+      const key=s+'-'+f;
+      inp.value=values[key]||'';
+      if(inp.value)check(inp,true);
+      inp.addEventListener('input',()=>{values[key]=inp.value;check(inp,false);updateScore();});
+      inp.addEventListener('blur',()=>{check(inp,true);updateScore();});
+      inp.addEventListener('keydown',nav);
+      c.append(inp);board.append(c);
+    }
+  });
+  board.append(el('fnum',''),el('fnum','0'));
+  for(let f=1;f<=FRETS;f++)board.append(el('fnum',f));
+  updateScore();
+}
+function focusAt(r,c){const i=board.querySelector(`input[data-row="${r}"][data-col="${c}"]`);if(i){i.focus();i.select();}}
+function nav(e){
+  const t=e.target,r=+t.dataset.row,c=+t.dataset.col;
+  const atStart=t.selectionStart===0, atEnd=t.selectionEnd===t.value.length;
+  if(e.key==='Enter'){e.preventDefault();c<FRETS?focusAt(r,c+1):focusAt((r+1)%6,0);}
+  else if(e.key==='ArrowRight'&&atEnd&&c<FRETS){e.preventDefault();focusAt(r,c+1);}
+  else if(e.key==='ArrowLeft'&&atStart&&c>0){e.preventDefault();focusAt(r,c-1);}
+  else if(e.key==='ArrowDown'&&r<5){e.preventDefault();focusAt(r+1,c);}
+  else if(e.key==='ArrowUp'&&r>0){e.preventDefault();focusAt(r-1,c);}
+}
+document.getElementById('clear').addEventListener('click',()=>{for(const k in values)delete values[k];build();focusAt(0,0);});
+document.querySelectorAll('.seg button').forEach(b=>{
+  b.setAttribute('aria-pressed',b.dataset.o===orient);
+  b.addEventListener('click',()=>{
+    orient=b.dataset.o;
+    try{localStorage.setItem('fnt-orient',orient);}catch(e){}
+    document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+    build();
+  });
+});
+build();
+
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
