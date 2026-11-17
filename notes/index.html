@@ -18,6 +18,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
 :root{
   --paper:#f3f4f1; --card:#ffffff; --ink:#1c2026; --muted:#5d6570; --line:#c9cdc6; --fret:#9aa09a;
   --root:#2b55c6; --band:#e6e8e3; --wrong:#c8312b; --ok:#2e7d4f;
@@ -44,9 +45,11 @@ h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);lin
 .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .seg button{font:500 14px var(--body);padding:7px 12px;border:0;background:var(--card);color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
-.primary{font:600 14px var(--body);padding:7px 14px;border:1px solid var(--root);border-radius:6px;background:var(--root);color:#fff;cursor:pointer}
+.primary,.secondary{font:600 14px var(--body);padding:7px 14px;border:1px solid var(--root);border-radius:6px;background:var(--root);color:#fff;cursor:pointer}
+.secondary{background:var(--card);color:var(--ink);border-color:var(--line);font-weight:500}
 .primary:hover{filter:brightness(1.08)}
-.primary:active{transform:translateY(1px)}
+.secondary:hover{border-color:var(--fret)}
+.primary:active,.secondary:active{transform:translateY(1px)}
 button:focus-visible{outline:2px solid var(--root);outline-offset:2px}
 
 .bar{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between;
@@ -56,25 +59,45 @@ h2{font-family:var(--display);font-weight:700;font-size:26px;margin:0}
 .score b{color:var(--ink);font-weight:600}
 .score.done b{color:var(--ok)}
 
+.quizbar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.ask{font-family:var(--display);font-weight:700;font-size:clamp(24px,3.6vw,34px);line-height:1.1;margin:0}
+.ask .target{color:var(--root)}
+.ask.solved .target{color:var(--ok)}
+.found{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:4px}
+.qbtns{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+
 .neck{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 10px 8px}
 .board{display:grid;grid-template-columns:26px 58px repeat(12,minmax(54px,1fr));min-width:820px}
 .sname{display:flex;align-items:center;font-family:var(--mono);font-size:11px;color:var(--muted);padding-left:4px}
+.sname.on{color:var(--root);font-weight:600}
 .cell{position:relative;height:46px;display:flex;align-items:center;justify-content:center;border-right:1.5px solid var(--line)}
 .cell.open{border-right:4px solid var(--ink)}
 .cell::before{content:"";position:absolute;left:0;right:0;top:50%;height:var(--sw,1px);background:var(--fret);transform:translateY(-50%)}
 .cell.open::before{left:50%}
 .cell.inlay::after{content:"";position:absolute;left:50%;top:100%;width:9px;height:9px;border-radius:50%;
   background:var(--band);transform:translate(-50%,-50%);z-index:0}
-input{position:relative;z-index:1;width:42px;height:30px;border-radius:15px;border:1.5px solid var(--line);
+.cell.on::before{background:var(--root)}
+input,.spot{position:relative;z-index:1;width:42px;height:30px;border-radius:15px;border:1.5px solid var(--line);
   background:var(--card);text-align:center;font:600 14px var(--mono);color:var(--ink);outline:none;padding:0}
 input:focus{border-color:var(--root);box-shadow:0 0 0 3px color-mix(in srgb,var(--root) 22%,transparent)}
 input.filled{border-color:var(--fret)}
 input.wrong{color:var(--wrong);border-color:var(--wrong)}
+.spot{cursor:pointer;transition:border-color .12s,background .12s,transform .1s}
+.spot:hover{border-color:var(--root)}
+.spot:active{transform:scale(.94)}
+.spot:focus-visible{outline:none;border-color:var(--root);box-shadow:0 0 0 3px color-mix(in srgb,var(--root) 22%,transparent)}
+.spot.hit{background:var(--root);border-color:var(--root);color:#fff;cursor:default}
+.spot.miss{border-color:var(--wrong);color:var(--wrong);animation:shake .3s}
+.spot.shown{border-color:var(--root);color:var(--root);border-style:dashed}
+.spot:disabled{opacity:.35;cursor:default}
+.spot.hit:disabled{opacity:1}
+@keyframes shake{0%,100%{translate:0}25%{translate:-3px}75%{translate:3px}}
 .fnum{text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:6px}
 
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
 .legend code{font-family:var(--mono);font-size:12px;background:var(--band);color:var(--ink);padding:1px 6px;border-radius:4px}
 .legend .bad{color:var(--wrong);font-weight:600}
+.legend .good{color:var(--root);font-weight:600}
 </style>
 </head>
 <body>
@@ -83,25 +106,52 @@ input.wrong{color:var(--wrong);border-color:var(--wrong)}
     <div>
       <a class="home" href="../">← Woodshed</a>
       <h1>Fretboard Note Trainer</h1>
-      <p class="sub">Name every note from the open strings to the 12th fret. Right answers stay put, wrong ones turn red. Clear it and go again.</p>
+      <p class="sub" id="sub"></p>
     </div>
     <div class="controls">
+      <div class="ctl"><span class="lbl" id="lblmode">Mode</span>
+        <div class="seg" role="group" aria-labelledby="lblmode" id="modeSeg">
+          <button type="button" data-v="fill">Name the notes</button>
+          <button type="button" data-v="quiz">Find the note</button>
+        </div></div>
       <div class="ctl"><span class="lbl" id="lblorient">Top string</span>
-        <div class="seg" role="group" aria-labelledby="lblorient">
-          <button type="button" data-o="tab" aria-pressed="true">High e (tab)</button>
-          <button type="button" data-o="neck" aria-pressed="false">Low E</button>
+        <div class="seg" role="group" aria-labelledby="lblorient" id="orientSeg">
+          <button type="button" data-v="tab">High e (tab)</button>
+          <button type="button" data-v="neck">Low E</button>
         </div></div>
       <button type="button" class="primary" id="clear">Clear chart</button>
     </div>
   </header>
 
   <section style="display:flex;flex-direction:column;gap:14px">
-    <div class="bar"><h2>Standard tuning</h2><span class="score" id="score"><b>0</b> / 78 correct</span></div>
+    <div class="bar"><h2>Standard tuning</h2><span class="score" id="score"></span></div>
+
+    <div class="quizbar" id="quizbar" hidden>
+      <div>
+        <p class="ask" id="ask" aria-live="polite"></p>
+        <div class="found" id="found"></div>
+      </div>
+      <div class="qbtns">
+        <div class="ctl"><span class="lbl" id="lblscope">Find</span>
+          <div class="seg" role="group" aria-labelledby="lblscope" id="scopeSeg">
+            <button type="button" data-v="all">Every one</button>
+            <button type="button" data-v="one">On one string</button>
+          </div></div>
+        <button type="button" class="secondary" id="reveal">Show me</button>
+        <button type="button" class="primary" id="next">Next note</button>
+      </div>
+    </div>
+
     <div class="neck"><div class="board" id="board"></div></div>
-    <div class="legend">
+    <div class="legend" id="legendFill">
       <span>Type <code>A</code> <code>F#</code> <code>Bb</code> <code>C♯</code> <code>E♭</code>. Sharp or flat spelling both count; lowercase is fine.</span>
       <span>A wrong note shows in <span class="bad">red</span>.</span>
       <span>Enter or Tab moves along the string; arrow keys move between boxes.</span>
+    </div>
+    <div class="legend" id="legendQuiz" hidden>
+      <span>Click every spot where the note lives, open strings and the 12th fret included.</span>
+      <span>Found ones turn <span class="good">blue</span>; a wrong click shows what's really there in <span class="bad">red</span>.</span>
+      <span>Find them all and the next note comes up on its own.</span>
     </div>
   </section>
 </div>
@@ -111,13 +161,24 @@ input.wrong{color:var(--wrong);border-color:var(--wrong)}
 const OPEN=[4,11,7,2,9,4];
 const SW=[1,1.2,1.5,1.9,2.3,2.7];
 const FRETS=12;
-let orient='tab';
-try{const v=localStorage.getItem('fnt-orient');if(v==='tab'||v==='neck')orient=v;}catch(e){}
+const SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FLAT =['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+const both=pc=>SHARP[pc]===FLAT[pc]?SHARP[pc]:`${SHARP[pc]} / ${FLAT[pc]}`;
+const STRING_NAME=['high e','B','G','D','A','low E'];
+
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},
+             set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let orient=store.get('fnt-orient','tab');
+let mode=store.get('fnt-mode','fill');
+let scope=store.get('fnt-scope','all');
 
 const board=document.getElementById('board');
 const scoreEl=document.getElementById('score');
-const values={};
+const values={};               // fill mode answers, kept when switching modes
+const quiz={pc:null,str:null,hits:new Set(),misses:0,shown:false,
+            rounds:0,clean:0,totalMisses:0,timer:null};
 
+/* ---------- fill mode ---------- */
 function parse(txt){
   const t=txt.trim().replace(/♯/g,'#').replace(/♭/g,'b');
   if(!t)return{state:'empty'};
@@ -140,41 +201,113 @@ function check(inp,final){
   inp.classList.toggle('filled',r.state!=='empty');
   inp.dataset.ok=(r.state==='note'&&r.pc===ans)?'1':'';
 }
-function updateScore(){
+function updateFillScore(){
   const n=board.querySelectorAll('input[data-ok="1"]').length;
   scoreEl.innerHTML=n===78?'<b>78 / 78</b> all correct':`<b>${n}</b> / 78 correct`;
   scoreEl.classList.toggle('done',n===78);
 }
-function el(cls,text){const d=document.createElement('div');d.className=cls;if(text!==undefined)d.textContent=text;return d;}
 
+/* ---------- quiz mode ---------- */
+function targets(){
+  const out=[];
+  for(let s=0;s<6;s++){
+    if(scope==='one'&&s!==quiz.str)continue;
+    for(let f=0;f<=FRETS;f++)if((OPEN[s]+f)%12===quiz.pc)out.push(s+'-'+f);
+  }
+  return out;
+}
+function newQuestion(){
+  clearTimeout(quiz.timer);
+  let pc,str;
+  do{pc=Math.floor(Math.random()*12);str=Math.floor(Math.random()*6);}
+  while(pc===quiz.pc&&(scope==='all'||str===quiz.str));
+  Object.assign(quiz,{pc,str,hits:new Set(),misses:0,shown:false});
+  build();
+}
+function renderQuiz(){
+  const t=targets(), solved=quiz.hits.size===t.length;
+  const ask=document.getElementById('ask');
+  const where=scope==='one'?` on the ${STRING_NAME[quiz.str]} string`:'';
+  ask.innerHTML=solved
+    ?`Got every <span class="target">${both(quiz.pc)}</span>${where}`
+    :`Find ${scope==='one'?'':'every '}<span class="target">${both(quiz.pc)}</span>${where}`;
+  ask.classList.toggle('solved',solved);
+  document.getElementById('found').textContent=
+    `${quiz.hits.size} of ${t.length} found · ${quiz.misses} ${quiz.misses===1?'miss':'misses'}`+(quiz.shown?' · shown':'');
+  const avg=quiz.rounds?(quiz.totalMisses/quiz.rounds).toFixed(1):'0';
+  scoreEl.innerHTML=`<b>${quiz.rounds}</b> ${quiz.rounds===1?'note':'notes'} done · <b>${quiz.clean}</b> perfect · ${avg} misses per note`;
+  scoreEl.classList.remove('done');
+  document.getElementById('reveal').disabled=solved||quiz.shown;
+}
+function clickSpot(btn){
+  const key=btn.dataset.key, t=targets();
+  if(quiz.hits.size===t.length||btn.classList.contains('hit'))return;
+  if(t.includes(key)){
+    quiz.hits.add(key);
+    btn.classList.remove('shown');btn.classList.add('hit');btn.textContent=both(quiz.pc).split(' / ')[0];
+    if(quiz.hits.size===t.length){
+      if(!quiz.shown){quiz.rounds++;quiz.totalMisses+=quiz.misses;if(quiz.misses===0)quiz.clean++;}
+      renderQuiz();
+      quiz.timer=setTimeout(newQuestion,1400);
+      return;
+    }
+  }else{
+    quiz.misses++;
+    const pc=+btn.dataset.pc;
+    btn.textContent=SHARP[pc];
+    btn.classList.remove('miss');void btn.offsetWidth;btn.classList.add('miss');
+    clearTimeout(btn._t);
+    btn._t=setTimeout(()=>{btn.classList.remove('miss');if(!btn.classList.contains('hit'))btn.textContent='';},1100);
+  }
+  renderQuiz();
+}
+
+/* ---------- board ---------- */
+function el(cls,text){const d=document.createElement('div');d.className=cls;if(text!==undefined)d.textContent=text;return d;}
 function build(){
   board.innerHTML='';
   const order=orient==='tab'?[0,1,2,3,4,5]:[5,4,3,2,1,0];
+  const focusOne=mode==='quiz'&&scope==='one';
+  const t=mode==='quiz'?targets():[];
   order.forEach((s,row)=>{
-    board.append(el('sname',s+1));
+    const on=focusOne&&s===quiz.str;
+    board.append(el('sname'+(on?' on':''),s+1));
     for(let f=0;f<=FRETS;f++){
-      let cls='cell'+(f===0?' open':'');
+      let cls='cell'+(f===0?' open':'')+(on?' on':'');
       // inlays sit on the line between rows: centre for 3/5/7/9, two for 12
       if(([3,5,7,9].includes(f)&&row===2)||(f===12&&(row===1||row===3)))cls+=' inlay';
       const c=el(cls);
       c.style.setProperty('--sw',SW[s]+'px');
-      const inp=document.createElement('input');
-      inp.type='text';inp.maxLength=3;inp.autocomplete='off';inp.spellcheck=false;
-      inp.setAttribute('autocapitalize','characters');
-      inp.setAttribute('aria-label',`String ${s+1}, ${f===0?'open':'fret '+f}`);
-      inp.dataset.pc=(OPEN[s]+f)%12; inp.dataset.row=row; inp.dataset.col=f;
-      const key=s+'-'+f;
-      inp.value=values[key]||'';
-      if(inp.value)check(inp,true);
-      inp.addEventListener('input',()=>{values[key]=inp.value;check(inp,false);updateScore();});
-      inp.addEventListener('blur',()=>{check(inp,true);updateScore();});
-      inp.addEventListener('keydown',nav);
-      c.append(inp);board.append(c);
+      const key=s+'-'+f, pc=(OPEN[s]+f)%12;
+      const where=`String ${s+1}, ${f===0?'open':'fret '+f}`;
+      if(mode==='fill'){
+        const inp=document.createElement('input');
+        inp.type='text';inp.maxLength=3;inp.autocomplete='off';inp.spellcheck=false;
+        inp.setAttribute('autocapitalize','characters');
+        inp.setAttribute('aria-label',where);
+        inp.dataset.pc=pc; inp.dataset.row=row; inp.dataset.col=f;
+        inp.value=values[key]||'';
+        if(inp.value)check(inp,true);
+        inp.addEventListener('input',()=>{values[key]=inp.value;check(inp,false);updateFillScore();});
+        inp.addEventListener('blur',()=>{check(inp,true);updateFillScore();});
+        inp.addEventListener('keydown',nav);
+        c.append(inp);
+      }else{
+        const b=document.createElement('button');
+        b.type='button';b.className='spot';b.dataset.key=key;b.dataset.pc=pc;
+        b.setAttribute('aria-label',where);
+        if(quiz.hits.has(key)){b.classList.add('hit');b.textContent=SHARP[pc];}
+        else if(quiz.shown&&t.includes(key)){b.classList.add('shown');b.textContent=SHARP[pc];}
+        if(focusOne&&s!==quiz.str)b.disabled=true;
+        b.addEventListener('click',()=>clickSpot(b));
+        c.append(b);
+      }
+      board.append(c);
     }
   });
   board.append(el('fnum',''),el('fnum','0'));
   for(let f=1;f<=FRETS;f++)board.append(el('fnum',f));
-  updateScore();
+  if(mode==='fill')updateFillScore();else renderQuiz();
 }
 function focusAt(r,c){const i=board.querySelector(`input[data-row="${r}"][data-col="${c}"]`);if(i){i.focus();i.select();}}
 function nav(e){
@@ -186,17 +319,32 @@ function nav(e){
   else if(e.key==='ArrowDown'&&r<5){e.preventDefault();focusAt(r+1,c);}
   else if(e.key==='ArrowUp'&&r>0){e.preventDefault();focusAt(r-1,c);}
 }
+
+/* ---------- controls ---------- */
+function seg(id,get,set){
+  const btns=document.querySelectorAll(`#${id} button`);
+  const sync=()=>btns.forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===get()));
+  btns.forEach(b=>b.addEventListener('click',()=>{set(b.dataset.v);sync();}));
+  sync();
+}
+function applyMode(){
+  const q=mode==='quiz';
+  document.getElementById('quizbar').hidden=!q;
+  document.getElementById('legendFill').hidden=q;
+  document.getElementById('legendQuiz').hidden=!q;
+  document.getElementById('clear').hidden=q;
+  document.getElementById('sub').textContent=q
+    ?'The app names a note, you find it on the neck. Every place it lives, or just on one string.'
+    :'Name every note from the open strings to the 12th fret. Right answers stay put, wrong ones turn red. Clear it and go again.';
+  if(q&&quiz.pc===null)newQuestion();else build();
+}
+seg('modeSeg',()=>mode,v=>{clearTimeout(quiz.timer);mode=v;store.set('fnt-mode',v);applyMode();});
+seg('orientSeg',()=>orient,v=>{orient=v;store.set('fnt-orient',v);build();});
+seg('scopeSeg',()=>scope,v=>{if(v===scope)return;scope=v;store.set('fnt-scope',v);newQuestion();});
 document.getElementById('clear').addEventListener('click',()=>{for(const k in values)delete values[k];build();focusAt(0,0);});
-document.querySelectorAll('.seg button').forEach(b=>{
-  b.setAttribute('aria-pressed',b.dataset.o===orient);
-  b.addEventListener('click',()=>{
-    orient=b.dataset.o;
-    try{localStorage.setItem('fnt-orient',orient);}catch(e){}
-    document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
-    build();
-  });
-});
-build();
+document.getElementById('next').addEventListener('click',newQuestion);
+document.getElementById('reveal').addEventListener('click',()=>{quiz.shown=true;build();});
+applyMode();
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}
 </script>

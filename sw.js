@@ -1,5 +1,5 @@
 // Bump VERSION whenever you change any file so installed copies pick up the update.
-const VERSION = 'woodshed-v1';
+const VERSION = 'woodshed-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest',
   './caged/', './caged/index.html', './notes/', './notes/index.html',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
